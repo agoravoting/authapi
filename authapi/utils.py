@@ -511,7 +511,8 @@ def check_fields(key, value):
     elif key == 'type':
         if not value in VALID_TYPE_FIELDS:
             msg += "Invalid extra_fields: bad %s.\n" % key
-    elif key in ('required', 'required_on_authentication', 'unique'):
+    elif key in ('required', 'required_on_authentication', 'unique', 'hidden',
+                 'allow_url_get_param_prefill'):
         if not isinstance(value, bool):
             msg += "Invalid extra_fields: bad %s.\n" % key
     elif key == 'regex':
