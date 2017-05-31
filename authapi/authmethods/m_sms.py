@@ -282,9 +282,9 @@ class Sms:
                 exist = exist_user(r, ae)
                 if exist and not exist.count('None'):
                     continue
-                # By default we creates the user as active we don't check
+                # By default we creates the user as false we don't check
                 # the pipeline
-                u = create_user(r, ae, True)
+                u = create_user(r, ae, False)
                 give_perms(u, ae)
         if msg and validation:
             return self.error("Incorrect data", error_codename="invalid_credentials")
