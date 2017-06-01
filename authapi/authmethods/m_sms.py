@@ -413,9 +413,9 @@ class Sms:
             
             # if user exists, be sure to activate it
             if not user_found.is_active:
-		user_found.is_active = True
-		user_found.save()
-		
+                user_found.is_active = True
+                user_found.save()
+                
             user_found.userdata.save()
             if not match_tlf:
                 user_found.userdata.tlf = tlf
