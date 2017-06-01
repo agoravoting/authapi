@@ -278,7 +278,6 @@ class Sms:
             else:
                 if msg:
                     msg = ''
-                    continue
                 exist = exist_user(r, ae)
                 if exist and not exist.count('None'):
                     continue
