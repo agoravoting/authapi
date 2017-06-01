@@ -33,7 +33,7 @@ from authmethods.utils import *
 class Sms:
     DESCRIPTION = 'Provides authentication using an SMS code.'
     CONFIG = {
-        'msg': 'Enter in __URL__ and put this code __CODE__',
+        'msg': 'Vota seguint aquest enllac __URL__ . Aquest es el teu codi d\'autentificacio __CODE__. Posa nom a l\'espai d\'arts esceniques',
         'registration-action': {
             'mode': 'vote',
             'mode-config': None,
