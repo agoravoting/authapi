@@ -282,7 +282,7 @@ class Sms:
                 exist = exist_user(r, ae)
                 if exist and not exist.count('None'):
                     continue
-                # By default we creates the user as false we don't check
+                # By default we creates the user as inactive we don't check
                 # the pipeline
                 u = create_user(r, ae, False)
                 give_perms(u, ae)
@@ -291,9 +291,9 @@ class Sms:
 
         if validation:
             for r in req.get('census'):
-                # By default we creates the user as active we don't check
+                # By default we creates the user as inactive and we don't check
                 # the pipeline
-                u = create_user(r, ae, True)
+                u = create_user(r, ae, False)
                 give_perms(u, ae)
         return data
 
@@ -410,6 +410,7 @@ class Sms:
                 reg_name = reg_empty_field['name']
                 if reg_name in req:
                     user_found.userdata.metadata[reg_name] = req.get(reg_name)
+            active = True
             user_found.userdata.save()
             if not match_tlf:
                 user_found.userdata.tlf = tlf
