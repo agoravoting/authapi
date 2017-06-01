@@ -373,13 +373,15 @@ class Sms:
             # Check that the reg_fill_empty_fields are empty, otherwise the user
             # is already registered
             for reg_empty_field in reg_fill_empty_fields:
-                 # Filter with Django's JSONfield
-                 reg_name = reg_empty_field['name']
-                 # Note: the register query _must_ contain a value for these fields
-                 if reg_name and reg_name in req and req[reg_name]:
-                     q = q & Q(userdata__metadata__contains={reg_name: ""})
-                 else:
-                     return self.error("Incorrect data", error_codename="invalid_credentials")
+                # Filter with Django's JSONfield
+                reg_name = reg_empty_field['name']
+                # Note: the register query _must_ contain a value for these fields
+                if reg_empty_field['type'] == 'bool':
+                  continue
+                elif req[reg_name]:
+                    q = q & Q(userdata__metadata__contains={reg_name: ""})
+                else:
+                    return self.error("Incorrect data", error_codename="invalid_credentials")
 
             user_found = None
             user_list = User.objects.filter(q)
