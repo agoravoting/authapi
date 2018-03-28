@@ -266,7 +266,6 @@ class Command(BaseCommand):
         # Otherwise there are problems parsing the json generated
         # by the csv writer.
 
-        print("Begin COPY USER")
         start_copy = timer()
 
         # We must reopen the temporary csv files created above. If we
@@ -276,6 +275,8 @@ class Command(BaseCommand):
         # We therefore use mode='w' and write, close, read
         with open(user_csv_file.name, 'r') as user_csv_file:
             curs = connection.cursor()
+
+            print("Begin COPY USER")
             curs.copy_expert(
                 "COPY %s FROM STDIN WITH CSV DELIMITER '%s' NULL '%s'"
                 % (self.USER_TABLE, self.DELIMITER, self.NULL), user_csv_file
@@ -291,7 +292,6 @@ class Command(BaseCommand):
                 self.DELIMITER), userdata_csv_file)
 
             print("Begin COPY ACL")
-
             curs.copy_expert("COPY %s %s FROM STDIN WITH CSV DELIMITER '%s'"
                 % (self.ACL_TABLE, self.ACL_COPY_COLUMNS, self.DELIMITER),
                 acl_csv_file)
@@ -303,7 +303,6 @@ class Command(BaseCommand):
             os.remove(user_csv_file.name)
             os.remove(userdata_csv_file.name)
             os.remove(acl_csv_file.name)
-
 
         print("Finished (%.3f s) (%.3f s)" % ((end_csv - start_csv),
             (end_copy - start_csv)))
