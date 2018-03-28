@@ -32,7 +32,7 @@ def flush_db_load_fixture(ffile="initial.json"):
 
 # implements a functional and a load test of the bcn import
 class TestBcnImport(TestCase):
-	LOAD_SIZE = 100000
+	LOAD_SIZE = 10000
 
 	def setUpTestData():
 		flush_db_load_fixture()

@@ -17,6 +17,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
 from django.db import connection
 from django.db.models import Max
+
+import os
 import json
 import csv
 import tempfile
@@ -36,7 +38,8 @@ from timeit import default_timer as timer
 #
 # Database loading is performed with postgresql COPY using intermediate
 # csv files as input. These are temporary files generated incrementally
-# before the COPY step. They will not be deleted automatically.
+# before the COPY step, for constant memory usage. The files are deleted
+# automatically unless the --keepcsvs option is present.
 #
 # Data mappings (capitalized fields are census input columns):
 #
@@ -51,9 +54,12 @@ from timeit import default_timer as timer
 # userdata.metadata.fullname: NOM COGNOM_1 COGNOM_2
 #
 # userdata.metadata: fields captured from input csv, as specified by the
-# --metadata option (as well as including fullname)
+# --metadata option (as well as including fullname as above)
 #
-# userdata.event_id: as specified by the combination of district_even_map
+# userdata.event_id: as specified by the combination of district_event_map
+# parameter and DISTRICTE
+#
+# acl.event_id: as specified by the combination of district_event_map
 # parameter and DISTRICTE
 #
 # See example input census format and district_event_map format in
@@ -65,7 +71,9 @@ from timeit import default_timer as timer
 #
 # The number of fields in the rows must match the header.
 # All of the capitalized fields above must be present as columns.
-# All of the fields mentioned in --metadata must be present as columns.
+# All of the fields requested with --metadata must be present as columns.
+# All the DISTRICTE values in the input census have corresponding entries
+# in the file specified by district_event_map, matching lexicographically.
 #
 # If these are not met the script will bomb with a KeyError or ValueError.
 #
@@ -82,7 +90,7 @@ from timeit import default_timer as timer
 #
 # To specify the size of the load test, change
 #
-# LOAD_SIZE = 100000
+# LOAD_SIZE = 10000
 #
 # in api/management/commands/tests.py
 #
@@ -126,6 +134,8 @@ class Command(BaseCommand):
             will complain if not found')
         parser.add_argument('--verbose', nargs='?', const=True, help=
             'If present shows output csv row data as it is being generated')
+        parser.add_argument('--keepcsvs', nargs='?', const=True, help=
+            'If present does not delete intermediate generated csv files')
 
     def handle(self, *args, **options):
         if options['verbose'] is not None:
@@ -287,6 +297,13 @@ class Command(BaseCommand):
                 acl_csv_file)
 
         end_copy = timer()
+
+        if options['keepcsvs'] is None:
+            print("Deleting temporary csv files")
+            os.remove(user_csv_file.name)
+            os.remove(userdata_csv_file.name)
+            os.remove(acl_csv_file.name)
+
 
         print("Finished (%.3f s) (%.3f s)" % ((end_csv - start_csv),
             (end_copy - start_csv)))
