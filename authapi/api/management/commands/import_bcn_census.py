@@ -74,8 +74,10 @@ from timeit import default_timer as timer
 # All of the fields requested with --metadata must be present as columns.
 # All the DISTRICTE values in the input census have corresponding entries
 # in the file specified by district_event_map, matching lexicographically.
+# All the events pointed to by district_event_map exist in the database.
 #
-# If these are not met the script will bomb with a KeyError or ValueError.
+# If these are not met the script will bomb with an error (KeyError, ValueError
+# )
 #
 #
 # CLI usage described by
@@ -113,6 +115,10 @@ class Command(BaseCommand):
     VOTE_PERMISSION = "vote"
     AUTHEVENT_TYPE = "AuthEvent"
 
+    # We need to ensure that the date format matches
+    # the postgresql datestyle setting.
+    DATESTYLE = ["ISO, MDY", "%m-%d-%Y %H:%M:%S"]
+
     # Unfortunately postgresql won't insert default values using
     # COPY unless you leave them out from the column list
     # (NULL does not work)
@@ -142,7 +148,7 @@ class Command(BaseCommand):
             self.verbose = True
 
         # all created dates in the database will have this
-        now_date = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        now_date = datetime.now().strftime(self.DATESTYLE[1])
 
         # the fields that will be captured as metadata in UserData entries
         metadata = options["metadata"]
@@ -267,6 +273,10 @@ class Command(BaseCommand):
         # by the csv writer.
 
         start_copy = timer()
+        curs = connection.cursor()
+
+        # set the datestyle to match our generated dates
+        curs.execute("SET DateStyle='%s'" % self.DATESTYLE[0])
 
         # We must reopen the temporary csv files created above. If we
         # try to use 'w+b' mode that supports writing and reading without
@@ -274,8 +284,6 @@ class Command(BaseCommand):
         # https://goo.gl/uJms1G
         # We therefore use mode='w' and write, close, read
         with open(user_csv_file.name, 'r') as user_csv_file:
-            curs = connection.cursor()
-
             print("Begin COPY USER")
             curs.copy_expert(
                 "COPY %s FROM STDIN WITH CSV DELIMITER '%s' NULL '%s'"
@@ -284,8 +292,6 @@ class Command(BaseCommand):
 
         with open(userdata_csv_file.name, 'r') as userdata_csv_file, \
         open(acl_csv_file.name, 'r') as acl_csv_file:
-            curs = connection.cursor()
-
             print("Begin COPY USERDATA")
             curs.copy_expert("COPY %s %s FROM STDIN WITH CSV DELIMITER '%s'"
                 % (self.USERDATA_TABLE, self.USERDATA_COPY_COLUMNS,

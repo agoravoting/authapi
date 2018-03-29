@@ -53,7 +53,7 @@ EJEMPLO_N;EJEMPLO_C1;EJEMPLO_C2;C AÇORES,    5 P01 1;08027;19780702;12345678X;D
 EJEMPLO_N;EJEMPLO_C1;EJEMPLO_C2;C AÇORES,    5 P01 1;08027;19780702;22345678X;D2;61;029807;0005;1935;5408;S;password
 EJEMPLO_N;EJEMPLO_C1;EJEMPLO_C2;C AÇORES,    5 P01 1;08027;19780702;32345678X;D3;61;029807;0005;1935;5408;S;password
 '''
-        district_event_map = '''{"D1":1, "D2": 2, "D3": 3}'''
+        district_event_map = '''{"D1":1, "D2": 2, "D3": -3}'''
         # convenience for the tests below
         district_event_map_dict = json.loads(district_event_map)
         # we need to capture these for the tests below
