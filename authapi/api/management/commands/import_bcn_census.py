@@ -24,6 +24,7 @@ import csv
 import tempfile
 from datetime import datetime
 import hashlib
+import psycopg2
 
 from api.models import AuthEvent, ACL, User
 from timeit import default_timer as timer
@@ -76,8 +77,7 @@ from timeit import default_timer as timer
 # in the file specified by district_event_map, matching lexicographically.
 # All the events pointed to by district_event_map exist in the database.
 #
-# If these are not met the script will bomb with an error (KeyError, ValueError
-# )
+# If these are not met the script will bomb with an error.
 #
 #
 # CLI usage described by
