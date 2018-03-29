@@ -57,7 +57,7 @@ EJEMPLO_N;EJEMPLO_C1;EJEMPLO_C2;C AÇORES,    5 P01 1;08027;19780702;32345678X;D
         # convenience for the tests below
         district_event_map_dict = json.loads(district_event_map)
         # we need to capture these for the tests below
-        metadata = ["NOM", "COGNOM_1", "COGNOM_2", "DNI", "CODI_POSTAL", "DISTRICTE"]
+        metadata = ["NOM", "COGNOM_1", "COGNOM_2", "DNI", "CODI_POSTAL", "DISTRICTE", "ADRECA"]
 
         self.go(census, district_event_map, metadata, True)
 
@@ -108,7 +108,8 @@ EJEMPLO_N;EJEMPLO_C1;EJEMPLO_C2;C AÇORES,    5 P01 1;08027;19780702;32345678X;D
     def go(self, census, district_event_map, metadata, verbose=False):
 
         with tempfile.NamedTemporaryFile(suffix='.csv') as census_file, \
-             tempfile.NamedTemporaryFile(suffix='.csv') as district_event_file:
+        tempfile.NamedTemporaryFile(suffix='.csv') as district_event_file:
+
             print("TestBcnImport: writing mock data to %s" % census_file.name)
             census_file.write(census.encode("utf-8"))
             census_file.flush()

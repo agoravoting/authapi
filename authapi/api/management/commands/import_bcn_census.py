@@ -24,7 +24,6 @@ import csv
 import tempfile
 from datetime import datetime
 import hashlib
-import psycopg2
 
 from api.models import AuthEvent, ACL, User
 from timeit import default_timer as timer
@@ -76,6 +75,7 @@ from timeit import default_timer as timer
 # All the DISTRICTE values in the input census have corresponding entries
 # in the file specified by district_event_map, matching lexicographically.
 # All the events pointed to by district_event_map exist in the database.
+# The input files are utf-8 encoded
 #
 # If these are not met the script will bomb with an error.
 #
@@ -157,19 +157,20 @@ class Command(BaseCommand):
 
         # Load the mapping that will control the assignment of
         # users to events, together with the DISTRICTE field
-        with open(options['district_event_map'][0], 'r') as \
-            district_event_map_file:
+        with open(options['district_event_map'][0], 'r',
+            encoding='utf-8') as district_event_map_file:
 
             district_event_map = json.load(district_event_map_file)
 
         # intermediate csv files are temporary files
-        with open(options['census'][0], 'r') as census_file, \
+        with open(options['census'][0], 'r',
+            encoding='utf-8') as census_file, \
         tempfile.NamedTemporaryFile(mode='w', delete=False,
-            suffix='.csv') as user_csv_file, \
+            suffix='.csv', encoding='utf-8') as user_csv_file, \
         tempfile.NamedTemporaryFile(mode='w', delete=False,
-            suffix='.csv') as userdata_csv_file, \
+            suffix='.csv', encoding='utf-8') as userdata_csv_file, \
         tempfile.NamedTemporaryFile(mode='w', delete=False,
-            suffix='.csv') as acl_csv_file:
+            suffix='.csv', encoding='utf-8') as acl_csv_file:
 
             print("Begin processing %s" % census_file.name)
             self.debug("metadata: %s" % metadata)
@@ -286,19 +287,22 @@ class Command(BaseCommand):
         with open(user_csv_file.name, 'r') as user_csv_file:
             print("Begin COPY USER")
             curs.copy_expert(
-                "COPY %s FROM STDIN WITH CSV DELIMITER '%s' NULL '%s'"
+                "COPY %s FROM STDIN WITH CSV DELIMITER '%s' NULL '%s' \
+                ENCODING 'UTF8'"
                 % (self.USER_TABLE, self.DELIMITER, self.NULL), user_csv_file
             )
 
         with open(userdata_csv_file.name, 'r') as userdata_csv_file, \
         open(acl_csv_file.name, 'r') as acl_csv_file:
             print("Begin COPY USERDATA")
-            curs.copy_expert("COPY %s %s FROM STDIN WITH CSV DELIMITER '%s'"
+            curs.copy_expert("COPY %s %s FROM STDIN WITH CSV DELIMITER '%s' \
+                ENCODING 'UTF8'"
                 % (self.USERDATA_TABLE, self.USERDATA_COPY_COLUMNS,
                 self.DELIMITER), userdata_csv_file)
 
             print("Begin COPY ACL")
-            curs.copy_expert("COPY %s %s FROM STDIN WITH CSV DELIMITER '%s'"
+            curs.copy_expert("COPY %s %s FROM STDIN WITH CSV DELIMITER '%s' \
+                ENCODING 'UTF8'"
                 % (self.ACL_TABLE, self.ACL_COPY_COLUMNS, self.DELIMITER),
                 acl_csv_file)
 
