@@ -60,8 +60,8 @@ from timeit import default_timer as timer
 #
 # If required AuthEvent data is already present at the target database it is
 # not copied. If some of this data is present but not all, an error is reported.
-# An intermediate directory is used to extract files from the archive. This directory
-# is deleted at the end of the import.
+# An intermediate directory is used to extract files from the archive. This
+# directory is deleted at the end of the import.
 #
 # Assumptions
 #
@@ -209,10 +209,10 @@ class Command(BaseCommand):
             self.debug("Removing directory: %s" % directory)
             shutil.rmtree(directory)
 
-    # Export census data into the given file_name, for the required
+    # Export census data into the given file_name, for the specified
     # event ids.
-    # If event_ids is an empty array, data for all events is exported.
     # Export data includes events, users, userdata and acls.
+    # If event_ids is an empty array, data for all events is exported.
     def to(self, file_name, event_ids):
         # Create a temporary directory as a workspace before archiving
         directory = tempfile.mkdtemp(suffix=".census_copy")
@@ -272,6 +272,9 @@ class Command(BaseCommand):
             if len(event_ids) == 0:
                 event_ids = AuthEvent.objects.values_list('id', flat=True)
 
+            if len(event_ids) == 0:
+                raise ValueError("No events found in database")
+
             # The events field is necessary for importing. The other two
             # fields are informative.
             manifest = {
@@ -299,7 +302,7 @@ class Command(BaseCommand):
         # the event ids that we are exporting, when importing this is ignored
         event_ids = options["eventids"]
 
-        start_csv = timer()
+        start = timer()
 
         if options['action'][0] == "from":
             self.from_(file_name)
@@ -307,6 +310,11 @@ class Command(BaseCommand):
             self.to(file_name, event_ids)
         else:
             raise ValueError("Unexpected command %s " % options['action'][0])
+
+        end = timer()
+
+        print("Finished copy_census %s (%.3f s)" % (options['action'][0],
+            (end - start)))
 
     # Determines which events, given the passed event ids, are exported
     def event_query(self, event_ids_string):
@@ -363,7 +371,6 @@ class Command(BaseCommand):
         query = "DELETE FROM %s USING %s WHERE %s.user_id = %s.id" \
             " and EVENT_ID in (%s)" % (self.ACL_TABLE, self.USERDATA_TABLE,
             self.ACL_TABLE, self.USERDATA_TABLE, event_ids_string)
-
 
         return query
 

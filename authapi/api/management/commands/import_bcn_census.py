@@ -25,7 +25,7 @@ import tempfile
 from datetime import datetime
 import hashlib
 
-from api.models import AuthEvent, ACL, User
+from api.models import AuthEvent, ACL, User, UserData
 from timeit import default_timer as timer
 
 #
@@ -124,7 +124,7 @@ class Command(BaseCommand):
     # (NULL does not work)
     # Therefore we must specify the columns explicitly in those tables
     # that use sequences for id's
-    USERDATA_COPY_COLUMNS = '''("metadata", "status", "event_id", "user_id")'''
+    USERDATA_COPY_COLUMNS = '''("id", "metadata", "status", "event_id", "user_id")'''
     ACL_COPY_COLUMNS = '''("perm", "user_id", "object_id", "object_type", "created")'''
 
     # the --verbose flag
@@ -198,6 +198,12 @@ class Command(BaseCommand):
             last_id = User.objects.aggregate(Max('id'))["id__max"]
             if last_id is None:
                 last_id = -1
+
+            # start creating users from the first available id
+            last_userdata_id = UserData.objects.aggregate(Max('id'))["id__max"]
+            if last_userdata_id is None:
+                last_userdata_id = -1
+
             row = 1
 
             # process census line by line
@@ -230,6 +236,7 @@ class Command(BaseCommand):
                 ]
 
                 userdata_values = [
+                    last_userdata_id + row,
                     json.dumps(
                         dict(
                             {m: census_row[indices[m]]
@@ -301,6 +308,7 @@ class Command(BaseCommand):
                 self.DELIMITER), userdata_csv_file)
 
             print("Begin COPY ACL")
+
             curs.copy_expert("COPY %s %s FROM STDIN WITH CSV DELIMITER '%s' \
                 ENCODING 'UTF8'"
                 % (self.ACL_TABLE, self.ACL_COPY_COLUMNS, self.DELIMITER),
