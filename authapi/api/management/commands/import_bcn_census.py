@@ -75,7 +75,7 @@ from timeit import default_timer as timer
 # All the DISTRICTE values in the input census have corresponding entries
 # in the file specified by district_event_map, matching lexicographically.
 # All the events pointed to by district_event_map exist in the database.
-# The input files are utf-8 encoded
+# The input files are utf-8 encoded.
 #
 # If these are not met the script will bomb with an error.
 #

@@ -23,12 +23,166 @@ import tempfile
 import json
 
 from api.models import ACL, AuthEvent, UserData
+from authmethods.models import Code
 from api import test_data
 
 def flush_db_load_fixture(ffile="initial.json"):
     from django.core import management
     management.call_command("flush", verbosity=0, interactive=False)
     management.call_command("loaddata", ffile, verbosity=0)
+
+def flush_db():
+    from django.core import management
+    management.call_command("flush", verbosity=0, interactive=False)
+
+# implements a functional test of the census_copy command
+class TestCopyCensus(TestCase):
+
+    def setUpTestData():
+        flush_db()
+    # manage.py test api.management.commands.tests.TestCensusCopy --settings=authapi.test_settings --nocapture
+
+    def test_copy(self):
+        import os
+        from django.db.models import Max
+
+        ae = AuthEvent(auth_method=test_data.auth_event4['auth_method'],
+            auth_method_config=test_data.authmethod_config_email_default)
+        ae.save()
+
+        ae2 = AuthEvent(auth_method=test_data.auth_event4['auth_method'],
+            auth_method_config=test_data.authmethod_config_email_default)
+        ae2.save()
+
+        ae3 = AuthEvent(auth_method=test_data.auth_event4['auth_method'],
+            auth_method_config=test_data.authmethod_config_email_default)
+        ae3.save()
+
+        u = User(username="1", email="2")
+        u.set_password("p")
+        u.save()
+        u.userdata.event = ae
+        u.userdata.save()
+
+        u2 = User(username="2", email="2")
+        u2.set_password("p")
+        u2.save()
+        u2.userdata.event = ae2
+        u2.userdata.save()
+
+        u3 = User(username="3", email="2")
+        u3.set_password("p")
+        u3.save()
+        u3.userdata.event = ae3
+        u3.userdata.save()
+
+        acl = ACL(user=u.userdata, object_type='AuthEvent', perm='vote', object_id=ae.id)
+        acl.save()
+
+        acl2 = ACL(user=u2.userdata, object_type='AuthEvent', perm='vote', object_id=ae2.id)
+        acl2.save()
+
+        acl3 = ACL(user=u3.userdata, object_type='AuthEvent', perm='vote', object_id=ae3.id)
+        acl3.save()
+
+        #
+        # Test 1: export import with all events (events = [])
+        #
+
+        events = AuthEvent.objects.all()
+        users = User.objects.all()
+        userdata = UserData.objects.all()
+        acls = ACL.objects.all()
+
+        self.assertEqual(len(events), 3)
+        self.assertEqual(len(users), 3)
+        self.assertEqual(len(userdata), 3)
+        self.assertEqual(len(acls), 3)
+
+        event_ids = []
+        action = "to"
+        file_name = os.path.join(tempfile.gettempdir(), "/tmp/sample.tar")
+
+        args = [action, file_name, "--verbose"]
+        opts = {"eventids": event_ids}
+        call_command('copy_census', *args, **opts)
+
+        action = "from"
+        args = [action, file_name, "--verbose"]
+        call_command('copy_census', *args, **opts)
+
+        events = AuthEvent.objects.all()
+        users = User.objects.all()
+        userdata = UserData.objects.all()
+        acls = ACL.objects.all()
+
+        self.assertEqual(len(events), 3)
+        self.assertEqual(len(users), 3)
+        self.assertEqual(len(userdata), 3)
+        self.assertEqual(len(acls), 3)
+
+        for i in range(0, 3):
+            self.assertEqual(users[i].username, str(i + 1))
+            self.assertEqual(userdata[i].event_id, i + 1)
+            self.assertEqual(users[i].userdata.has_perms(
+                "AuthEvent", "vote", users[i].userdata.event.id), True)
+
+        #
+        # Test 2: export import with events = [2, 3]
+        #
+
+        action = "to"
+        args = [action, file_name, "--verbose"]
+        event_ids = [2, 3]
+        opts = {"eventids": event_ids}
+        call_command('copy_census', *args, **opts)
+
+        action = "from"
+        args = [action, file_name, "--verbose"]
+        call_command('copy_census', *args, **opts)
+
+        events = AuthEvent.objects.all()
+        users = User.objects.all()
+        userdata = UserData.objects.all()
+        acls = ACL.objects.all()
+
+        self.assertEqual(len(events), 3)
+        self.assertEqual(len(users), 3)
+        self.assertEqual(len(userdata), 3)
+        self.assertEqual(len(acls), 3)
+
+        #
+        # Test 3: export import with events = [2, 3], delete db
+        #
+
+        action = "to"
+        args = [action, file_name, "--verbose"]
+        event_ids = [2, 3]
+        opts = {"eventids": event_ids}
+        call_command('copy_census', *args, **opts)
+
+        AuthEvent.objects.all().delete()
+        User.objects.all().delete()
+
+        action = "from"
+        args = [action, file_name, "--verbose"]
+        call_command('copy_census', *args, **opts)
+
+        events = AuthEvent.objects.all()
+        users = User.objects.all()
+        userdata = UserData.objects.all()
+        acls = ACL.objects.all()
+
+        self.assertEqual(len(events), 2)
+        self.assertEqual(len(users), 2)
+        self.assertEqual(len(userdata), 2)
+        self.assertEqual(len(acls), 2)
+
+        for i in range(0, 2):
+            self.assertEqual(users[i].username, str(i + 2))
+            self.assertEqual(userdata[i].event_id, i + 2)
+            self.assertEqual(users[i].userdata.has_perms(
+                "AuthEvent", "vote", users[i].userdata.event.id), True)
 
 # implements a functional and a load test of the bcn import
 class TestBcnImport(TestCase):
