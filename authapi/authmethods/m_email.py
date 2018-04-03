@@ -67,7 +67,6 @@ class Email:
             ["check_total_max", {"field": "ip", "period": 3600*24, "max": 50}],
         ]
     }
-    USED_TYPE_FIELDS = ['email']
 
     email_definition = { "name": "email", "type": "email", "required": True, "min": 4, "max": 255, "required_on_authentication": True }
     email_opt_definition = { "name": "email", "type": "email", "required": False, "min": 0, "max": 255, "required_on_authentication": False }

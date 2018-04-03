@@ -495,6 +495,7 @@ VALID_FIELDS = (
   'help',
   'type',
   'required',
+  'func',
   'autofill',
   'regex',
   'min',
@@ -525,6 +526,7 @@ VALID_PIPELINES = (
     )
 VALID_TYPE_FIELDS = ('text', 'password', 'int', 'bool', 'regex', 'email', 'tlf',
         'captcha', 'textarea', 'dni', 'dict', 'image', 'date')
+VALID_FUNC_FIELDS = ('username', 'email', 'tlf', 'code', 'password')
 REQUIRED_ADMIN_FIELDS = ('name', 'type')
 VALID_ADMIN_FIELDS = VALID_FIELDS + ('description', 'label', 'step', 'value', 'placeholder')
 
@@ -629,6 +631,9 @@ def check_fields(key, value):
             msg += "Invalid extra_fields: bad %s.\n" % key
     elif key == 'type':
         if not value in VALID_TYPE_FIELDS:
+            msg += "Invalid extra_fields: bad %s.\n" % key
+    elif key == 'func':
+        if not value in VALID_FUNC_FIELDS:
             msg += "Invalid extra_fields: bad %s.\n" % key
     elif key in ('required', 'required_on_authentication', 'unique'):
         if not isinstance(value, bool):

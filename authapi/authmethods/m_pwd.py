@@ -47,7 +47,6 @@ class PWD:
             {'object_type': 'AuthEvent', 'perms': ['vote',], 'object_id': 'AuthEventId' }
         ],
     }
-    USED_TYPE_FIELDS = ['username', 'password']
     username_definition = { "name": "username", "type": "text", "required": True, "min": 3, "max": 200, "required_on_authentication": True }
     password_definition = { "name": "password", "type": "password", "required": True, "min": 3, "max": 200, "required_on_authentication": True }
 

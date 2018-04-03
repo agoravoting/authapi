@@ -1099,9 +1099,7 @@ class AuthEventView(View):
 
             extra_fields = req.get('extra_fields', None)
             if extra_fields:
-                msg += check_extra_fields(
-                    extra_fields,
-                    METHODS.get(auth_method).USED_TYPE_FIELDS)
+                msg += check_extra_fields(extra_fields)
                 slug_set = set()
                 for field in extra_fields:
                     if 'name' in field:
@@ -1114,9 +1112,7 @@ class AuthEventView(View):
 
             admin_fields = req.get('admin_fields', None)
             if admin_fields:
-                msg += check_admin_fields(
-                    admin_fields,
-                    METHODS.get(auth_method).USED_TYPE_FIELDS)
+                msg += check_admin_fields(admin_fields)
 
             # check census mode
             census = req.get('census', '')

@@ -79,7 +79,6 @@ class SmsOtp:
             ["check_total_max", {"field": "ip", "period": 3600*24, "max": 100}],
         ]
     }
-    USED_TYPE_FIELDS = ['tlf']
 
     tlf_definition = { "name": "tlf", "type": "text", "required": True, "min": 4, "max": 20, "required_on_authentication": True }
     tlf_opt_definition = { "name": "tlf", "type": "text", "required": False, "min": 0, "max": 20, "required_on_authentication": False }
