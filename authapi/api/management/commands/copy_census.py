@@ -267,10 +267,14 @@ class Command(BaseCommand):
             cursor.copy_expert("COPY (%s) TO STDIN ENCODING 'UTF8'"
                 % query, acls_file)
 
-            # We must set the list of exported ids in the manifest. If we
-            # exported data for all events, we get this list from the database
+            # We must set the list of exported ids in the manifest. This
+            # may or may not match the argument passed in.
             if len(event_ids) == 0:
                 event_ids = AuthEvent.objects.values_list('id', flat=True)
+            else:
+                event_ids = AuthEvent.objects.filter(id__in = event_ids) \
+                    .values_list('id', flat=True)
+
 
             if len(event_ids) == 0:
                 raise ValueError("No events found in database")

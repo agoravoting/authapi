@@ -182,7 +182,31 @@ class TestCopyCensus(TestCase):
         self.assertEqual(len(acls), 3)
 
         #
-        # Test 3: export import with events = [2, 3], delete db
+        # Test 2: export import with events = [2, 3, 500]
+        #
+
+        action = "to"
+        args = [action, file_name, "--verbose"]
+        event_ids = [2, 3, 500]
+        opts = {"eventids": event_ids}
+        call_command('copy_census', *args, **opts)
+
+        action = "from"
+        args = [action, file_name, "--verbose"]
+        call_command('copy_census', *args, **opts)
+
+        events = AuthEvent.objects.all()
+        users = User.objects.all()
+        userdata = UserData.objects.all()
+        acls = ACL.objects.all()
+
+        self.assertEqual(len(events), 3)
+        self.assertEqual(len(users), 3)
+        self.assertEqual(len(userdata), 3)
+        self.assertEqual(len(acls), 3)
+
+        #
+        # Test 4: export import with events = [2, 3], delete db
         #
 
         action = "to"
@@ -258,7 +282,7 @@ class TestCopyCensus(TestCase):
 class TestBcnImport(TestCase):
     LOAD_SIZE = 10000
 
-    def setUpTestData():
+    def setUp(self):
         flush_db_load_fixture()
 
     # functional test

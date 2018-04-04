@@ -123,7 +123,7 @@ class Command(BaseCommand):
     # COPY unless you leave them out from the column list
     # (NULL does not work)
     # Therefore we must specify the columns explicitly in those tables
-    # that use sequences for id's
+    # that use sequences for id's or where we want default values.
     USERDATA_COPY_COLUMNS = '''("id", "metadata", "status", "event_id", "user_id")'''
     ACL_COPY_COLUMNS = '''("perm", "user_id", "object_id", "object_type", "created")'''
 
@@ -254,7 +254,7 @@ class Command(BaseCommand):
 
                 acl_values = [
                     self.VOTE_PERMISSION,
-                    last_id + row,
+                    last_userdata_id + row,
                     event_id,
                     self.AUTHEVENT_TYPE,
                     now_date
