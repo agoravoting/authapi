@@ -235,6 +235,17 @@ class Command(BaseCommand):
             if all(isinstance(item, int) for item in event_ids) != True:
                 raise ValueError("Unexpected event_ids type")
 
+            # We must set the list of exported ids in the manifest. This
+            # may or may not match the argument passed in.
+            if len(event_ids) == 0:
+                event_ids = AuthEvent.objects.values_list('id', flat=True)
+            else:
+                event_ids = AuthEvent.objects.filter(id__in = event_ids) \
+                    .values_list('id', flat=True)
+
+            if len(event_ids) == 0:
+                raise ValueError("No events found in database")
+
             # We use this when creating raw select queries.
             event_ids_string = self.event_ids_string(event_ids)
 
@@ -267,17 +278,6 @@ class Command(BaseCommand):
             cursor.copy_expert("COPY (%s) TO STDIN ENCODING 'UTF8'"
                 % query, acls_file)
 
-            # We must set the list of exported ids in the manifest. This
-            # may or may not match the argument passed in.
-            if len(event_ids) == 0:
-                event_ids = AuthEvent.objects.values_list('id', flat=True)
-            else:
-                event_ids = AuthEvent.objects.filter(id__in = event_ids) \
-                    .values_list('id', flat=True)
-
-
-            if len(event_ids) == 0:
-                raise ValueError("No events found in database")
 
             # The events field is necessary for importing. The other two
             # fields are informative.

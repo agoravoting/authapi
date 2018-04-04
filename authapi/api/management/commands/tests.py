@@ -68,7 +68,7 @@ def bcn_import(census, district_event_map, metadata, verbose=False):
 
 # implements a functional test of the census_copy command
 class TestCopyCensus(TestCase):
-    LOAD_SIZE = 10000
+    LOAD_SIZE = 100000
 
     def setUp(self):
         flush_db()
@@ -251,6 +251,8 @@ class TestCopyCensus(TestCase):
             auth_method_config=test_data.authmethod_config_email_default)
         ae3.save()
 
+        print("Generating and loading mock data")
+
         load_data_large(self.LOAD_SIZE)
 
         event_ids = []
@@ -259,13 +261,20 @@ class TestCopyCensus(TestCase):
 
         args = [action, file_name, "--verbose"]
         opts = {"eventids": event_ids}
+
+        print("Begin copy to")
         call_command('copy_census', *args, **opts)
+
+        print("Deleting existing data")
 
         AuthEvent.objects.all().delete()
         User.objects.all().delete()
 
         action = "from"
         args = [action, file_name, "--verbose"]
+
+        print("Begin copy from")
+
         call_command('copy_census', *args, **opts)
 
         events = AuthEvent.objects.all().count()
