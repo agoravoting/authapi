@@ -333,7 +333,7 @@ def send_code(user, ip, config=None, auth_method_override=None, code=None):
     event_id = user.userdata.event.id
 
     # if blank tlf or email
-    if auth_method in ["sms", "sms-otp"] and not user.userdata.tlf:
+    if auth_method in ["sms", "sms-otp"]:
         return
     # else email or email-top
     elif not user.email:
