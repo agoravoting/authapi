@@ -334,7 +334,8 @@ def send_code(user, ip, config=None, auth_method_override=None, code=None):
 
     # if blank tlf or email
     if auth_method in ["sms", "sms-otp"]:
-        return
+        if not user.userdata.tlf:
+            return
     # else email or email-top
     elif not user.email:
         return
