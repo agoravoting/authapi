@@ -1843,7 +1843,7 @@ class UserChangePassword(View):
     ''' 
     Change password. 
     '''
-    def post(self, request, pk):
+    def post(self, request):
   
         try:
             req = parse_json_request(request)
