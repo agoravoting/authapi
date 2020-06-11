@@ -116,7 +116,7 @@ class Command(BaseCommand):
                 )
             )
 
-            for el in udata['election_permissions']:
+            for el in udata.get('election_permissions', []):
                 # if permission list is empty, it means we have to ensure
                 # that the user has no permission for that election
                 perms = ACL.objects.filter(

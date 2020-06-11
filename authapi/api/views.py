@@ -1839,6 +1839,44 @@ class UserExtraView(View):
 user_extra = login_required(UserExtraView.as_view())
 
 
+class UserChangePassword(View):
+    ''' 
+    Change password. 
+    '''
+    def post(self, request, pk):
+  
+        try:
+            req = parse_json_request(request)
+        except:
+            return json_response(
+                status=400, 
+                error_codename=ErrorCodes.BAD_REQUEST
+            )
+        username = req.get("username", None)
+        new_password = req.get("password", None)
+
+        if (
+            not isinstance(username, str) or
+            not isinstance(new_password, str)
+        ):
+            return json_response(
+                status=400, 
+                error_codename=ErrorCodes.BAD_REQUEST
+            )
+
+        user = get_object_or_404(User, username=username)
+
+        permission_required(user, 'UserData', 'edit', user.pk)
+        permission_required(user, 'AuthEvent', 'create')
+
+        user.set_password(new_password)
+        user.save()
+        data = {'status': 'ok'}
+        return json_response(data)
+
+change_password = login_required(UserChangePassword.as_view())
+
+
 class UserResetPwd(View):
     ''' Reset password. '''
     def post(self, request):
