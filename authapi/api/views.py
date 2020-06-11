@@ -1866,8 +1866,8 @@ class UserChangePassword(View):
 
         user = get_object_or_404(User, username=username)
 
-        permission_required(user, 'UserData', 'edit', user.pk)
-        permission_required(user, 'AuthEvent', 'create')
+        permission_required(request.user, 'UserData', 'edit', user.pk)
+        permission_required(request.user, 'AuthEvent', 'create')
 
         user.set_password(new_password)
         user.save()
