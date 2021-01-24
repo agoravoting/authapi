@@ -1414,10 +1414,26 @@ class AuthEventView(View):
 
             # check if it has ballot boxes
             has_ballot_boxes = req.get('has_ballot_boxes', False)
+            ballot_boxes = []
             if not isinstance(has_ballot_boxes, bool):
                 return json_response(
                     status=400,
                     error_codename="INVALID_BALLOT_BOXES")
+            
+            if has_ballot_boxes:
+              ballot_boxes = req.get('ballot_boxes', [])
+              if (
+                not isinstance(ballot_boxes, list) or 
+                (len(ballot_boxes) > 0 and not has_ballot_boxes) or
+                False in [
+                  isinstance(name, str) and len(name) < 255
+                  for name in ballot_boxes
+                ]
+              ):
+                return json_response(
+                    status=400,
+                    error_codename="INVALID_BALLOT_BOXES")
+
 
             # check if it has hide_default_login_lookup_field
             hide_default_login_lookup_field = req.get(
@@ -1519,6 +1535,14 @@ class AuthEventView(View):
                 **election_options
               )
               ae.save()
+
+            # create the ballot boxes if they don't exist
+            if has_ballot_boxes:
+              for ballot_box_name in ballot_boxes:
+                BallotBox.objects.get_or_create(
+                  name=ballot_box_name,
+                  auth_event=ae
+                )
 
             acl = ACL(
                 user=request.user.userdata,
